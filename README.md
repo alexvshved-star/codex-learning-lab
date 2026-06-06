@@ -76,3 +76,44 @@ python3 -m http.server 8080
 | `assets/logos/altaco_logo.svg` | `logo.ai` | 3 | Горизонтальний логотип, темні вектори |
 
 SVG перевірено: відсутні embedded scripts, зовнішні посилання та vendor metadata. На темній темі логотип автоматично інвертується через CSS `filter: brightness(0) invert(1)`.
+
+---
+
+## Галерея каменю ALTACO
+
+Блок ALTACO містить адаптивну галерею-каталог із 4 матеріалів: Azul Macauba, Arabescatto Classico, Black Tempest, Brown Silk.
+
+### Оптимізовані WebP
+
+Оригінальні JPG (Canon EOS 6D, ~7–8 MB кожен) не змінювались. Для веб-відображення створено оптимізовані WebP у двох розмірах:
+
+| Файл | 640 px | 1280 px | Оригінал |
+|---|---|---|---|
+| Azul Macauba | `AzulMacauba2-640.webp` (20 KB) | `AzulMacauba2-1280.webp` (64 KB) | `AzulMacauba2.jpg` (6.4 MB) |
+| Arabescatto Classico | `ArabescattoClassico-640.webp` (51 KB) | `ArabescattoClassico-1280.webp` (121 KB) | `Arabescatto classico_2.jpg` (7.5 MB) |
+| Black Tempest | `BlackTempest2-640.webp` (43 KB) | `BlackTempest2-1280.webp` (137 KB) | `BlackTempest2.jpg` (7.8 MB) |
+| Brown Silk | `BrownSilk-640.webp` (60 KB) | `BrownSilk-1280.webp` (190 KB) | `BrownSilk.jpg` (7.7 MB) |
+
+Усі WebP збережено у `assets/stones/`. Економія ваги: **−98–99%** порівняно з оригіналами.
+
+### Адаптивна верстка
+
+Галерея використовує `<picture>` + `srcset` для вибору оптимального розміру браузером:
+
+```html
+<picture>
+  <source
+    srcset="assets/stones/AzulMacauba2-640.webp 640w,
+            assets/stones/AzulMacauba2-1280.webp 1280w"
+    sizes="(max-width: 600px) calc(100vw - 40px), calc(50% - 28px)"
+    type="image/webp" />
+  <img src="assets/stones/AzulMacauba2-1280.webp"
+       alt="Azul Macauba — блакитно-кремовий натуральний камінь із хвилястими прожилками"
+       width="1280" height="853" loading="lazy" />
+</picture>
+```
+
+- **Desktop (> 600 px)**: 2 колонки (`grid-template-columns: 1fr 1fr`)
+- **Mobile (≤ 600 px)**: 1 колонка
+- Пропорції: 3:2, `object-fit: cover`
+- `loading="lazy"` — зображення завантажуються лише при прокрутці до блоку

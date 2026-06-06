@@ -267,9 +267,52 @@ body.dark .brand-logo {
   color: var(--text-muted);
 }
 
+/* Stone gallery */
+.stone-gallery {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.stone-item {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+}
+
+.stone-item picture {
+  display: block;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+}
+
+.stone-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease;
+}
+
+.stone-item:hover img { transform: scale(1.04); }
+
+.stone-item figcaption {
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .hero h1 { font-size: 1.7rem; }
   .cards { gap: 10px; }
   .card { flex: 1 1 130px; }
+  .stone-gallery { grid-template-columns: 1fr; gap: 12px; }
 }
