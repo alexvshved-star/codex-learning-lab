@@ -220,7 +220,7 @@ button {
 #progress-label { font-size: 0.9rem; color: var(--text-muted); white-space: nowrap; }
 
 /* Tabs */
-.tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+.tabs { display: flex; gap: 8px; margin-bottom: 24px; justify-content: center; }
 
 .tab {
   padding: 8px 20px;
@@ -248,6 +248,7 @@ button {
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .brand-icon {
