@@ -122,6 +122,7 @@ button {
   font-weight: 600;
   margin-bottom: 28px;
   color: var(--text);
+  text-align: center;
 }
 
 /* Cards */
@@ -138,16 +139,19 @@ button {
   padding: 20px 24px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   font-size: 1rem;
   color: var(--text);
   flex: 1 1 160px;
   min-width: 140px;
+  text-align: center;
 }
 
 .card.clickable {
   flex-direction: column;
   align-items: flex-start;
+  text-align: left;
   cursor: pointer;
   user-select: none;
 }
@@ -173,7 +177,7 @@ button {
 }
 
 /* Checklist */
-.checklist { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.checklist { list-style: none; display: flex; flex-direction: column; gap: 10px; width: fit-content; max-width: 100%; margin-left: auto; margin-right: auto; }
 
 .checklist li label {
   display: flex;
@@ -286,6 +290,10 @@ body.dark .brand-logo {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: fit-content;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .task-list li { font-size: 1rem; color: var(--text-muted); }
