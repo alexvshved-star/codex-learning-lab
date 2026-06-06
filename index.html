@@ -10,6 +10,21 @@
 
   <!-- Hero -->
   <header class="hero">
+    <picture class="hero-bg" aria-hidden="true">
+      <source
+        media="(max-width: 768px)"
+        srcset="assets/hero/textur1-768.webp"
+        type="image/webp" />
+      <source
+        srcset="assets/hero/textur1-1440.webp"
+        type="image/webp" />
+      <img
+        src="assets/hero/textur1-1440.webp"
+        alt=""
+        width="1440" height="1440"
+        loading="eager"
+        fetchpriority="high" />
+    </picture>
     <div class="container">
       <h1>Codex Learning Lab</h1>
       <p class="hero-sub">Навчальний мінісайт для знайомства з Codex: файли, код, термінал і перевірка результату.</p>
