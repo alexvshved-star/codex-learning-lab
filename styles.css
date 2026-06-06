@@ -203,6 +203,50 @@ button {
 .tab-content h3 { font-size: 1.15rem; margin-bottom: 10px; color: var(--text); }
 .tab-content p { color: var(--text-muted); margin-bottom: 8px; font-size: 0.97rem; }
 
+/* Brand logos */
+.brand-header { margin-bottom: 20px; }
+
+.brand-logos {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.brand-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.brand-logo {
+  height: 48px;
+  width: auto;
+  max-width: 260px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* Інвертуємо темний SVG-логотип у темній темі */
+body.dark .brand-logo {
+  filter: brightness(0) invert(1);
+}
+
+.brand-wordmark {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text);
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+@media (max-width: 600px) {
+  .brand-logo { max-width: 180px; height: 38px; }
+  .brand-icon { width: 44px; height: 44px; }
+}
+
 /* Task list */
 .task-list {
   padding-left: 20px;
