@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Codex Learning Lab</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="light">
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="container">
+      <h1>Codex Learning Lab</h1>
+      <p class="hero-sub">Навчальний мінісайт для знайомства з Codex: файли, код, термінал і перевірка результату.</p>
+      <button id="theme-toggle" onclick="toggleTheme()">🌙 Темна тема</button>
+    </div>
+  </header>
+
+  <!-- Що я вивчаю -->
+  <section class="section" id="learning">
+    <div class="container">
+      <h2>Що я тут вивчаю</h2>
+      <div class="cards">
+        <div class="card">📁<span>Огляд проєкту</span></div>
+        <div class="card">📄<span>Створення файлів</span></div>
+        <div class="card">✏️<span>Редагування коду</span></div>
+        <div class="card">▶️<span>Запуск перевірки</span></div>
+        <div class="card">💬<span>Пояснення змін</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Чекліст прогресу -->
+  <section class="section alt" id="checklist">
+    <div class="container">
+      <h2>Що я вже зрозумів у Codex</h2>
+      <ul class="checklist" id="checklist-list">
+        <li><label><input type="checkbox" onchange="updateProgress()" /> Як Codex оглядає папку проєкту</label></li>
+        <li><label><input type="checkbox" onchange="updateProgress()" /> Як Codex пропонує структуру файлів</label></li>
+        <li><label><input type="checkbox" onchange="updateProgress()" /> Як Codex пише HTML, CSS і JavaScript</label></li>
+        <li><label><input type="checkbox" onchange="updateProgress()" /> Як додати інтерактивність на сторінку</label></li>
+        <li><label><input type="checkbox" onchange="updateProgress()" /> Як Codex пояснює, що саме змінив</label></li>
+      </ul>
+      <div class="progress-wrap">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <span id="progress-label">0 / 5</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Перемикач ALTACO / EONYX -->
+  <section class="section" id="context">
+    <div class="container">
+      <h2>Контекст проєкту</h2>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('altaco')">ALTACO</button>
+        <button class="tab" onclick="switchTab('eonyx')">EONYX</button>
+      </div>
+      <div class="tab-content" id="tab-altaco">
+        <h3>ALTACO — натуральний камінь</h3>
+        <p>ALTACO — українська компанія з Києва, яка займається дистрибуцією якісного італійського натурального каменю та кварцового агломерату. Представляє бренди Bagnara та Santa Margherita в Україні.</p>
+        <p>Матеріали: мармур, граніт, кварцит, травертин, онікс, кварцовий і мармуровий агломерат.</p>
+        <p>ALTACO — реальний бізнес-полігон для тестування AI-рішень: каталог, склад, клієнтські запити, комерційні пропозиції, логістика.</p>
+      </div>
+      <div class="tab-content hidden" id="tab-eonyx">
+        <h3>EONYX — прикладний AI</h3>
+        <p>EONYX створює прикладні AI-системи для B2B-компаній реального сектору. Фокус — не абстрактні чат-боти, а контрольовані AI-агенти, які працюють із реальними бізнес-даними.</p>
+        <p>Напрями: автоматизація процесів, кастомні AI-агенти, цифровізація експертизи, інтеграція AI у продажі, склад, документообіг і аналітику.</p>
+        <p>ALTACO є практичним майданчиком для EONYX, де AI-рішення тестуються на реальних задачах.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Пояснення технологій -->
+  <section class="section alt" id="tech">
+    <div class="container">
+      <h2>Три кити вебу</h2>
+      <div class="cards">
+        <div class="card clickable" onclick="showInfo('html')">
+          <span class="card-icon">🏗️</span><span>HTML</span>
+          <p class="card-info hidden" id="info-html">HTML — це структура сторінки. Як скелет: заголовки, параграфи, кнопки, зображення.</p>
+        </div>
+        <div class="card clickable" onclick="showInfo('css')">
+          <span class="card-icon">🎨</span><span>CSS</span>
+          <p class="card-info hidden" id="info-css">CSS — це оформлення. Кольори, шрифти, відступи, анімації. HTML без CSS виглядає як текст без дизайну.</p>
+        </div>
+        <div class="card clickable" onclick="showInfo('js')">
+          <span class="card-icon">⚡</span><span>JavaScript</span>
+          <p class="card-info hidden" id="info-js">JavaScript — це поведінка. Завдяки йому кнопки щось роблять, тема перемикається, чекліст рахує прогрес.</p>
+        </div>
+      </div>
+      <p class="hint">Натисни на картку — побачиш пояснення</p>
+    </div>
+  </section>
+
+  <!-- Що має показати Codex -->
+  <section class="section" id="codex-tasks">
+    <div class="container">
+      <h2>Що має показати Codex</h2>
+      <ol class="task-list">
+        <li>Оглянути папку проєкту</li>
+        <li>Запропонувати структуру файлів</li>
+        <li>Створити сайт українською мовою</li>
+        <li>Додати інтерактивність</li>
+        <li>Перевірити результат</li>
+        <li>Пояснити, які файли створено або змінено</li>
+      </ol>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p>Codex Learning Lab · EONYX + ALTACO · Київ, Україна</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
