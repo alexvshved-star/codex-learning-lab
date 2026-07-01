@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Ретроградный Меркурий — Центр космического контроля</title>
+<style>
+  :root{
+    --bg:#000; --line:#12202c; --cyan:#2ff0c8; --amber:#ffb020; --red:#ff5566;
+    --ink:#dff6f0; --muted:#5f7d84;
+    --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:#000;color:var(--ink);font-family:var(--mono);
+    -webkit-font-smoothing:antialiased;display:flex;justify-content:center;
+    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+  .device{width:100%;max-width:440px;min-height:100dvh;display:flex;flex-direction:column;
+    border-left:1px solid var(--line);border-right:1px solid var(--line);background:#000}
+
+  header{padding:12px 16px 10px;border-bottom:1px solid var(--line)}
+  .krest{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:10px;
+    letter-spacing:.26em;text-transform:uppercase}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);
+    box-shadow:0 0 10px var(--cyan);animation:blink 1.6s steps(2) infinite}
+  @keyframes blink{50%{opacity:.25}}
+  h1{margin:7px 0 2px;font-size:18px;font-weight:800;color:#eafffb;
+    text-shadow:0 0 22px rgba(47,240,200,.25)}
+  .win{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+  .win b{color:var(--amber);font-variant-numeric:tabular-nums;font-size:14px;letter-spacing:.05em}
+  .win small{color:var(--muted);font-size:10px;letter-spacing:.2em;text-transform:uppercase}
+
+  /* RADAR HERO */
+  .scope{position:relative;aspect-ratio:1/1;margin:14px 16px 8px;border:1px solid var(--line);
+    border-radius:16px;overflow:hidden;background:radial-gradient(closest-side,#071319,#03080c)}
+  .scope canvas{display:block;width:100%;height:100%}
+  .ov{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;
+    justify-content:space-between;padding:11px 13px}
+  .tag{font-size:9px;letter-spacing:.22em;color:#2f8f7e;text-transform:uppercase}
+  .tag.r{align-self:flex-end;color:var(--muted)}
+  .verdict{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;
+    font-size:26px;font-weight:800;font-style:italic;color:var(--amber);opacity:0;transition:opacity .5s;
+    text-shadow:0 0 20px rgba(255,176,32,.5)}
+  .verdict.on{opacity:1}
+
+  /* thin equalizer strip */
+  .strip{margin:0 16px;height:48px;border:1px solid var(--line);border-radius:10px;
+    overflow:hidden;background:#03080c}
+  .strip canvas{display:block;width:100%;height:100%}
+
+  /* COMMS */
+  .comms{flex:1;margin:12px 16px 0;display:flex;flex-direction:column;min-height:120px}
+  .cap{font-size:9px;letter-spacing:.24em;color:var(--muted);text-transform:uppercase;
+    margin-bottom:8px;display:flex;justify-content:space-between}
+  .log{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding-right:2px}
+  .msg{max-width:88%;padding:8px 11px;border-radius:12px;font-size:13px;line-height:1.4;
+    opacity:0;transform:translateY(6px);animation:pop .28s ease forwards}
+  @keyframes pop{to{opacity:1;transform:none}}
+  .msg .who{display:block;font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+    margin-bottom:3px;opacity:.7}
+  .op{align-self:flex-start;background:#0c1620;border:1px solid #16303a}
+  .op .who{color:var(--cyan)}
+  .cmd{align-self:flex-end;background:#161014;border:1px solid #3a2130}
+  .cmd .who{color:var(--amber)}
+  .sys{align-self:center;max-width:100%;text-align:center;background:transparent;
+    border:1px dashed #3a2130;color:var(--red);font-size:11px;letter-spacing:.18em;
+    text-transform:uppercase;padding:9px 14px}
+  .cursor::after{content:"▋";color:var(--cyan);animation:blink .8s steps(2) infinite;margin-left:1px}
+
+  .controls{padding:12px 16px calc(16px + env(safe-area-inset-bottom));display:flex;gap:10px;
+    border-top:1px solid var(--line);margin-top:12px}
+  button{flex:1;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    padding:13px 10px;border-radius:11px;cursor:pointer;color:var(--ink);background:#0c1620;
+    border:1px solid #17303a;transition:.15s}
+  button.primary{background:linear-gradient(180deg,#0f2a2a,#0a1a22);border-color:var(--cyan);color:#eafffb}
+  button.pulse{animation:pulse 1.1s ease-in-out infinite}
+  @keyframes pulse{50%{box-shadow:0 0 0 3px rgba(47,240,200,.20)}}
+  button:hover{border-color:var(--cyan)}
+  button:active{transform:translateY(1px)}
+  button:disabled{opacity:.4;cursor:default;animation:none}
+  button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important}}
+</style>
+</head>
+<body>
+<div class="device">
+  <header>
+    <div class="krest"><span class="dot"></span>ЦЕНТР КОСМИЧЕСКОГО КОНТРОЛЯ · СЕКТОР 4</div>
+    <h1>Ретроградный Меркурий</h1>
+    <div class="win"><b>29.06 — 27.07</b><small>окно захвата</small></div>
+  </header>
+
+  <div class="scope">
+    <canvas id="radar"></canvas>
+    <div class="ov">
+      <div class="tag">RNG 40 000 000 км&nbsp;&nbsp;|&nbsp;&nbsp;PWR ●●●○</div>
+      <div class="tag r">оператор · пост 7</div>
+    </div>
+    <div class="verdict" id="verdict">Встречаем</div>
+  </div>
+
+  <div class="strip"><canvas id="spec"></canvas></div>
+
+  <div class="comms">
+    <div class="cap"><span>КАНАЛ СВЯЗИ · ШИФР</span><span id="clock">07:53</span></div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div class="controls">
+    <button class="primary" id="go" disabled>▶ Запустить перехват</button>
+    <button id="reset" disabled>Сброс</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const reduced = matchMedia("(prefers-reduced-motion:reduce)").matches;
+  const rc=document.getElementById("radar"), rx=rc.getContext("2d");
+  const sc=document.getElementById("spec"), sx=sc.getContext("2d");
+  let RW,RH,SW,SH,DPR;
+  function fit(){
+    DPR=Math.min(devicePixelRatio||1,2);
+    RW=rc.clientWidth; RH=rc.clientHeight; rc.width=RW*DPR; rc.height=RH*DPR; rx.setTransform(DPR,0,0,DPR,0,0);
+    SW=sc.clientWidth; SH=sc.clientHeight; sc.width=SW*DPR; sc.height=SH*DPR; sx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  addEventListener("resize",fit);
+
+  let angle=0, armed=false, blips=[], craft=null;
+  function seedBlips(){
+    blips=[];
+    for(let i=0;i<7;i++) blips.push({a:Math.random()*Math.PI*2, r:0.2+Math.random()*0.7});
+  }
+  seedBlips();
+
+  /* ---------- radar ---------- */
+  function drawRadar(){
+    const cx=RW/2, cy=RH/2, R=Math.min(RW,RH)/2-6;
+    rx.clearRect(0,0,RW,RH);
+    for(let i=1;i<=4;i++){ rx.strokeStyle="rgba(47,240,200,"+(0.06+i*0.015)+")"; rx.lineWidth=1;
+      rx.beginPath(); rx.arc(cx,cy,R*i/4,0,Math.PI*2); rx.stroke(); }
+    rx.strokeStyle="rgba(47,240,200,.10)"; rx.beginPath();
+    rx.moveTo(cx-R,cy); rx.lineTo(cx+R,cy); rx.moveTo(cx,cy-R); rx.lineTo(cx,cy+R); rx.stroke();
+
+    angle=(angle+(reduced?0.006:0.028))%(Math.PI*2);
+    for(let k=0;k<26;k++){ const a=angle-k*0.03;
+      rx.strokeStyle="rgba(47,240,200,"+(0.16*(1-k/26))+")";
+      rx.beginPath(); rx.moveTo(cx,cy); rx.lineTo(cx+Math.cos(a)*R, cy+Math.sin(a)*R); rx.stroke(); }
+    rx.strokeStyle="rgba(47,240,200,.85)"; rx.lineWidth=1.5;
+    rx.beginPath(); rx.moveTo(cx,cy); rx.lineTo(cx+Math.cos(angle)*R, cy+Math.sin(angle)*R); rx.stroke();
+    rx.lineWidth=1;
+
+    blips.forEach(b=>{
+      let da=((angle-b.a)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+      const lit=da<0.9?(1-da/0.9):0;
+      const bx=cx+Math.cos(b.a)*R*b.r, by=cy+Math.sin(b.a)*R*b.r;
+      rx.fillStyle="rgba(47,240,200,"+(0.16+lit*0.6)+")";
+      rx.beginPath(); rx.arc(bx,by,2.2+lit*2,0,Math.PI*2); rx.fill();
+    });
+
+    if(armed){
+      if(!craft) newCraft();
+      craft.x+=craft.vx*craft.sp; craft.y+=craft.vy*craft.sp;
+      craft.trail.push({x:craft.x,y:craft.y}); if(craft.trail.length>24) craft.trail.shift();
+      if(Math.hypot(craft.x-cx,craft.y-cy) > R+22) newCraft();
+      rx.lineWidth=2.4;
+      for(let i=1;i<craft.trail.length;i++){ const p=craft.trail[i-1],q=craft.trail[i];
+        rx.strokeStyle="rgba(255,176,32,"+(i/craft.trail.length*0.4)+")";
+        rx.beginPath(); rx.moveTo(p.x,p.y); rx.lineTo(q.x,q.y); rx.stroke(); }
+      rx.lineWidth=1;
+      const ca=Math.atan2(craft.y-cy,craft.x-cx);
+      let da=((angle-ca)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+      const glow=0.6+(da<1?(1-da)*0.4:0);
+      craftShape(craft.x,craft.y, Math.atan2(craft.vy,craft.vx), glow);
+      rx.font="11px "+getComputedStyle(document.body).fontFamily;
+      rx.fillStyle="rgba(255,176,32,.9)"; rx.fillText("☿ RETRO", craft.x+16, craft.y-11);
+    }
+    rx.fillStyle="rgba(47,240,200,.9)"; rx.beginPath(); rx.arc(cx,cy,2.5,0,Math.PI*2); rx.fill();
+  }
+  function newCraft(){
+    const R=Math.min(RW,RH)/2-6, cx=RW/2, cy=RH/2, a=Math.random()*Math.PI*2;
+    craft={x:cx+Math.cos(a)*R, y:cy+Math.sin(a)*R, vx:-Math.cos(a), vy:-Math.sin(a),
+           sp:(reduced?0.8:1.8), trail:[]};
+  }
+  function craftShape(px,py,head,glow){
+    rx.save(); rx.translate(px,py); rx.rotate(head);
+    rx.strokeStyle="rgba(255,176,32,"+glow+")"; rx.fillStyle="rgba(255,176,32,"+(glow*0.2)+")";
+    rx.lineWidth=1.9; rx.lineJoin="round"; rx.lineCap="round";
+    const L=18,r=5.5;
+    rx.beginPath(); rx.moveTo(-8,-r); rx.lineTo(L,-r); rx.arc(L,0,r,-Math.PI/2,Math.PI/2);
+    rx.lineTo(-8,r); rx.closePath(); rx.fill(); rx.stroke();
+    rx.beginPath(); rx.arc(-10,-r-1,4.2,0,Math.PI*2); rx.stroke();
+    rx.beginPath(); rx.arc(-10, r+1,4.2,0,Math.PI*2); rx.stroke();
+    rx.restore();
+  }
+
+  /* ---------- equalizer strip ---------- */
+  const NB=40, bars=[]; for(let i=0;i<NB;i++) bars.push({v:0.2,seed:Math.random()*10}); let ph=0;
+  function drawStrip(){
+    sx.clearRect(0,0,SW,SH); ph+=reduced?0.01:0.06;
+    const bw=SW/NB, pad=bw*0.22;
+    for(let i=0;i<NB;i++){
+      const b=bars[i];
+      let e=0.2+0.55*Math.abs(Math.sin(ph*0.8+b.seed+i*0.3))+0.3*Math.abs(Math.sin(ph*0.4+i*0.15));
+      if(armed) e+=0.15; e=Math.min(1,e); b.v+=(e-b.v)*0.25;
+      const h=b.v*SH*0.92, xx=i*bw+pad, y=SH-h;
+      const g=sx.createLinearGradient(0,SH,0,y);
+      g.addColorStop(0,"rgba(47,240,200,.15)"); g.addColorStop(1,"rgba(120,255,220,.95)");
+      sx.fillStyle=g; sx.fillRect(xx,y,bw-2*pad,h);
+    }
+  }
+
+  function loop(){ drawRadar(); drawStrip(); requestAnimationFrame(loop); }
+
+  /* ---------- comms ---------- */
+  const intro=[
+    ["op","Оператор · пост 7","О боже, что это?"],
+    ["op","Оператор · пост 7","Оно огромное… и похоже на —"]
+  ];
+  const rest=[
+    ["sys","","переключение канала · пост 3"],
+    ["op","Борт · пост 3","— по правому борту! Прямо как гигантский —"],
+    ["sys","","переключение · наблюдатель, парк"],
+    ["op","Наблюдатель","Ну это же просто здоровенный —"],
+    ["sys","","помехи на линии"],
+    ["op","Оператор · пост 5","— длиной почти в две —"],
+    ["cmd","Командир","Отставить описания. Коротко: что это?"],
+    ["op","Оператор · пост 7","Меркурий. Ретроградный."],
+    ["cmd","Командир","…А форма почему такая?"],
+    ["op","Оператор · пост 7","Так исторически сложилось, товарищ командир."],
+    ["cmd","Командир","Повышенная готовность. Ничего важного не подписываем."],
+    ["sys","","СТАТУС: ВСТРЕЧАЕМ"]
+  ];
+
+  const log=document.getElementById("log"), clock=document.getElementById("clock");
+  const verdict=document.getElementById("verdict"), go=document.getElementById("go"), reset=document.getElementById("reset");
+  let timers=[], phaseDone=false, ri=0;
+
+  function typeInto(node,text,done){
+    if(reduced){node.textContent=text; done&&done(); return;}
+    node.classList.add("cursor"); let i=0;
+    (function tick(){ node.textContent=text.slice(0,i++);
+      if(i<=text.length) timers.push(setTimeout(tick,20+Math.random()*24));
+      else { node.classList.remove("cursor"); done&&done(); } })();
+  }
+  function render(role,who,text,cb,keepCursor){
+    const div=document.createElement("div"); div.className="msg "+role;
+    if(role==="sys"){ div.textContent="»  "+text+"  «"; log.appendChild(div);
+      log.scrollTop=log.scrollHeight; cb&&timers.push(setTimeout(cb,650)); return; }
+    const w=document.createElement("span"); w.className="who"; w.textContent=who;
+    const b=document.createElement("span"); div.appendChild(w); div.appendChild(b);
+    log.appendChild(div); log.scrollTop=log.scrollHeight;
+    typeInto(b,text,()=>{ if(keepCursor) b.classList.add("cursor");
+      log.scrollTop=log.scrollHeight; cb&&timers.push(setTimeout(cb,470)); });
+  }
+  function playIntro(){
+    render(intro[0][0],intro[0][1],intro[0][2],()=>{
+      render(intro[1][0],intro[1][1],intro[1][2],()=>{
+        phaseDone=true; go.disabled=false; go.classList.add("pulse"); }, true); });
+  }
+  function playRest(){
+    if(ri>=rest.length){ verdict.classList.add("on"); go.textContent="Встречаем ☿"; return; }
+    const [role,who,text]=rest[ri++]; render(role,who,text,playRest);
+  }
+  function start(){
+    if(!phaseDone) return;
+    armed=true; newCraft(); go.disabled=true; go.classList.remove("pulse"); reset.disabled=false;
+    go.textContent="◉ Перехват активен"; clock.textContent="07:54";
+    const c=log.querySelector(".cursor"); c&&c.classList.remove("cursor");
+    timers.push(setTimeout(playRest,400));
+  }
+  function clearAll(){
+    timers.forEach(clearTimeout); timers=[];
+    armed=false; craft=null; ri=0; phaseDone=false; seedBlips();
+    log.innerHTML=""; verdict.classList.remove("on");
+    go.disabled=true; go.classList.remove("pulse"); go.textContent="▶ Запустить перехват";
+    reset.disabled=true; clock.textContent="07:53";
+    timers.push(setTimeout(playIntro,500));
+  }
+
+  go.addEventListener("click",start);
+  reset.addEventListener("click",clearAll);
+
+  fit(); requestAnimationFrame(loop);
+  timers.push(setTimeout(playIntro,600));
+})();
+</script></body></html>
