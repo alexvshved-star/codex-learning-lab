@@ -81,6 +81,9 @@
   .pad{padding:12px 16px calc(16px + env(safe-area-inset-bottom));display:flex;gap:10px;
     border-top:1px solid var(--line);margin-top:12px}
   .pad[hidden]{display:none}
+  .controls[hidden]{display:none}
+  .hint[hidden]{display:none}
+  .scope.play .ov{display:none}
   .pad button{font-family:var(--mono);font-size:16px;font-weight:700;border-radius:12px;cursor:pointer;
     color:var(--ink);background:#0c1620;border:1px solid #17303a;padding:16px 0;transition:.1s}
   .pad button:active{background:#12303a;border-color:var(--cyan)}
@@ -227,6 +230,7 @@
   }
   addEventListener("resize",fit);
 
+  const scope=document.querySelector(".scope");
   let mode="intro";           // intro | game | over
   let angle=0, armed=false, blips=[], craft=null;
   function seedBlips(){ blips=[]; for(let i=0;i<7;i++) blips.push({a:Math.random()*Math.PI*2, r:0.2+Math.random()*0.7}); }
@@ -305,7 +309,7 @@
 
   function enterGame(){
     timers.forEach(clearTimeout); timers=[]; armed=false; craft=null;
-    mode="game"; controls.hidden=true; pad.hidden=false; hint.hidden=false;
+    mode="game"; scope.classList.add("play"); controls.hidden=true; pad.hidden=false; hint.hidden=false;
     verdict.classList.remove("on"); log.innerHTML="";
     wave=0; lives=3; score=0; enemies=[]; bullets=[]; invuln=0; lastShot=0; betweenWaves=0;
     player={x:RW/2, y:RH-24, w:26, h:18, sp:4.4};
@@ -372,7 +376,8 @@
     }
     // HUD
     rx.font="12px "+getComputedStyle(document.body).fontFamily; rx.textBaseline="top";
-    rx.fillStyle="rgba(255,90,110,.95)"; rx.fillText("♥".repeat(Math.max(0,lives)), 12, 10);
+    const full=Math.max(0,lives);
+    rx.fillStyle="rgba(255,90,110,.95)"; rx.fillText("♥".repeat(full)+"♡".repeat(Math.max(0,3-full)), 12, 10);
     rx.fillStyle="rgba(207,233,227,.9)"; rx.textAlign="right";
     rx.fillText(S.downed.toUpperCase()+" "+score, RW-12, 10);
     rx.fillText(S.wave.toUpperCase()+" "+wave, RW-12, 26);
@@ -384,12 +389,19 @@
       rx.fillText(S.wave.toUpperCase()+" "+wave, RW/2, RH/2); rx.restore(); rx.textAlign="left"; }
     // game over
     if(mode==="over"){
-      rx.fillStyle="rgba(0,0,0,.62)"; rx.fillRect(0,0,RW,RH);
+      rx.fillStyle="rgba(0,0,0,.68)"; rx.fillRect(0,0,RW,RH);
+      // the RETRO object returns, large, behind the text
+      const sc=Math.min(RW,RH)/58;
+      silhouette(RW/2, RH/2+6, -Math.PI/2, 0.5, sc);
+      // GAME OVER + localized subline + score
       rx.textAlign="center";
-      rx.fillStyle="rgba(255,90,110,1)"; rx.font="800 26px "+getComputedStyle(document.body).fontFamily;
-      rx.fillText(S.over, RW/2, RH/2-14);
-      rx.fillStyle="rgba(207,233,227,.95)"; rx.font="14px "+getComputedStyle(document.body).fontFamily;
-      rx.fillText(S.downed+": "+score+"   ·   "+S.reached+": "+wave, RW/2, RH/2+14);
+      const ff=getComputedStyle(document.body).fontFamily;
+      rx.fillStyle="rgba(255,90,110,1)"; rx.font="800 34px "+ff;
+      rx.fillText("GAME OVER", RW/2, RH/2-18);
+      rx.fillStyle="rgba(255,176,32,.9)"; rx.font="700 12px "+ff;
+      rx.fillText(S.over.toUpperCase(), RW/2, RH/2+4);
+      rx.fillStyle="rgba(207,233,227,.95)"; rx.font="14px "+ff;
+      rx.fillText(S.downed+": "+score+"   ·   "+S.reached+": "+wave, RW/2, RH/2+28);
       rx.textAlign="left";
     }
   }
@@ -430,7 +442,7 @@
     const c=log.querySelector(".cursor"); c&&c.classList.remove("cursor"); timers.push(setTimeout(playRest,400)); }
 
   function resetToIntro(){ timers.forEach(clearTimeout); timers=[];
-    mode="intro"; armed=false; craft=null; enemies=[]; bullets=[]; player=null;
+    mode="intro"; scope.classList.remove("play"); armed=false; craft=null; enemies=[]; bullets=[]; player=null;
     pad.hidden=true; hint.hidden=true; controls.hidden=false; reset.hidden=false;
     go.className="ctl primary"; go.dataset.mode=""; go.disabled=true; go.classList.remove("pulse"); go.textContent=S.start;
     reset.className="ctl danger"; reset.dataset.mode="destroy"; reset.disabled=true; reset.textContent=S.destroy;
