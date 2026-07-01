@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Retrograde Intercept</title>
+<style>
+  :root{
+    --bg:#000; --line:#12202c; --cyan:#2ff0c8; --amber:#ffb020; --red:#ff5566;
+    --ink:#dff6f0; --muted:#5f7d84;
+    --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:#000;color:var(--ink);font-family:var(--mono);-webkit-font-smoothing:antialiased;
+    display:flex;justify-content:center;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    -webkit-user-select:none;user-select:none;touch-action:manipulation}
+  .device{width:100%;max-width:440px;min-height:100dvh;display:flex;flex-direction:column;
+    border-left:1px solid var(--line);border-right:1px solid var(--line);background:#000}
+
+  header{padding:12px 16px 10px;border-bottom:1px solid var(--line)}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .krest{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:10px;
+    letter-spacing:.24em;text-transform:uppercase}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);
+    box-shadow:0 0 10px var(--cyan);animation:blink 1.6s steps(2) infinite}
+  @keyframes blink{50%{opacity:.25}}
+  .lang{display:flex;gap:4px}
+  .lang button{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted);
+    background:transparent;border:1px solid #1a2c34;border-radius:7px;padding:4px 7px;cursor:pointer}
+  .lang button.on{color:#02120e;background:var(--cyan);border-color:var(--cyan)}
+  h1{margin:7px 0 2px;font-size:18px;font-weight:800;color:#eafffb;text-shadow:0 0 22px rgba(47,240,200,.25)}
+  .win{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+  .win b{color:var(--amber);font-variant-numeric:tabular-nums;font-size:14px;letter-spacing:.05em}
+  .win small{color:var(--muted);font-size:10px;letter-spacing:.2em;text-transform:uppercase}
+
+  .scope{position:relative;aspect-ratio:1/1;margin:14px 16px 8px;border:1px solid var(--line);
+    border-radius:16px;overflow:hidden;background:radial-gradient(closest-side,#071319,#03080c)}
+  .scope canvas{display:block;width:100%;height:100%}
+  .ov{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;
+    justify-content:space-between;padding:11px 13px}
+  .tag{font-size:9px;letter-spacing:.22em;color:#2f8f7e;text-transform:uppercase}
+  .tag.r{align-self:flex-end;color:var(--muted)}
+  .verdict{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;
+    font-size:26px;font-weight:800;font-style:italic;color:var(--amber);opacity:0;transition:opacity .5s;
+    text-shadow:0 0 20px rgba(255,176,32,.5)}
+  .verdict.on{opacity:1}
+
+  .strip{margin:0 16px;height:48px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#03080c}
+  .strip canvas{display:block;width:100%;height:100%}
+
+  .comms{flex:1;margin:12px 16px 0;display:flex;flex-direction:column;min-height:120px}
+  .cap{font-size:9px;letter-spacing:.24em;color:var(--muted);text-transform:uppercase;
+    margin-bottom:8px;display:flex;justify-content:space-between}
+  .log{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:9px;padding-right:2px}
+  .msg{max-width:88%;padding:8px 11px;border-radius:12px;font-size:13px;line-height:1.4;
+    opacity:0;transform:translateY(6px);animation:pop .28s ease forwards}
+  @keyframes pop{to{opacity:1;transform:none}}
+  .msg .who{display:block;font-size:9px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:3px;opacity:.7}
+  .op{align-self:flex-start;background:#0c1620;border:1px solid #16303a}
+  .op .who{color:var(--cyan)}
+  .cmd{align-self:flex-end;background:#161014;border:1px solid #3a2130}
+  .cmd .who{color:var(--amber)}
+  .sys{align-self:center;max-width:100%;text-align:center;background:transparent;border:1px dashed #3a2130;
+    color:var(--red);font-size:11px;letter-spacing:.18em;text-transform:uppercase;padding:9px 14px}
+  .cursor::after{content:"▋";color:var(--cyan);animation:blink .8s steps(2) infinite;margin-left:1px}
+
+  .controls{padding:12px 16px calc(16px + env(safe-area-inset-bottom));display:flex;gap:10px;
+    border-top:1px solid var(--line);margin-top:12px}
+  button.ctl{flex:1;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    padding:13px 10px;border-radius:11px;cursor:pointer;color:var(--ink);background:#0c1620;border:1px solid #17303a;transition:.15s}
+  button.ctl.primary{background:linear-gradient(180deg,#0f2a2a,#0a1a22);border-color:var(--cyan);color:#eafffb}
+  button.ctl.danger{background:linear-gradient(180deg,#2a0f14,#1a0a0d);border-color:var(--red);color:#ffd9de}
+  button.ctl.pulse{animation:pulse 1.1s ease-in-out infinite}
+  @keyframes pulse{50%{box-shadow:0 0 0 3px rgba(47,240,200,.20)}}
+  button.ctl:hover{border-color:var(--cyan)}
+  button.ctl:active{transform:translateY(1px)}
+  button.ctl:disabled{opacity:.4;cursor:default;animation:none}
+  button.ctl:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+
+  .pad{padding:12px 16px calc(16px + env(safe-area-inset-bottom));display:flex;gap:10px;
+    border-top:1px solid var(--line);margin-top:12px}
+  .pad[hidden]{display:none}
+  .pad button{font-family:var(--mono);font-size:16px;font-weight:700;border-radius:12px;cursor:pointer;
+    color:var(--ink);background:#0c1620;border:1px solid #17303a;padding:16px 0;transition:.1s}
+  .pad button:active{background:#12303a;border-color:var(--cyan)}
+  .pad .move{flex:1}
+  .pad .fire{flex:1.4;color:#02120e;background:var(--cyan);border-color:var(--cyan);letter-spacing:.14em}
+  .hint{text-align:center;font-size:10px;color:var(--muted);letter-spacing:.1em;padding:0 16px 6px}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important}}
+</style>
+</head>
+<body>
+<div class="device">
+  <header>
+    <div class="top">
+      <div class="krest"><span class="dot"></span><span id="t-center"></span></div>
+      <div class="lang" id="lang">
+        <button data-l="ru">RU</button><button data-l="uk">UK</button><button data-l="en">EN</button>
+      </div>
+    </div>
+    <h1 id="t-h1"></h1>
+    <div class="win"><b>29.06 — 27.07</b><small id="t-window"></small></div>
+  </header>
+
+  <div class="scope">
+    <canvas id="radar"></canvas>
+    <div class="ov">
+      <div class="tag">RNG 40 000 000 KM&nbsp;&nbsp;|&nbsp;&nbsp;PWR ●●●○</div>
+      <div class="tag r" id="t-oper"></div>
+    </div>
+    <div class="verdict" id="verdict"></div>
+  </div>
+
+  <div class="strip"><canvas id="spec"></canvas></div>
+
+  <div class="comms">
+    <div class="cap"><span id="t-comms"></span><span id="clock">07:53</span></div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div class="hint" id="hint" hidden>← → &nbsp;/&nbsp; SPACE</div>
+  <div class="controls" id="controls">
+    <button class="ctl primary" id="go" disabled></button>
+    <button class="ctl" id="reset" disabled></button>
+  </div>
+  <div class="pad" id="pad" hidden>
+    <button class="move" id="left" aria-label="left">◀</button>
+    <button class="fire" id="fire"></button>
+    <button class="move" id="right" aria-label="right">▶</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const reduced = matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+  /* ================= strings ================= */
+  const STR = {
+    ru:{ html:"ru", title:"Retrograde Intercept · Ретроградный Меркурий",
+      center:"ЦЕНТР КОСМИЧЕСКОГО КОНТРОЛЯ · СЕКТОР 4", h1:"Ретроградный Меркурий",
+      window:"окно захвата", oper:"оператор · пост 7", comms:"КАНАЛ СВЯЗИ · ШИФР",
+      start:"▶ Запустить перехват", reset:"Сброс", active:"◉ Перехват активен",
+      verdict:"Встречаем", verdictBtn:"Встречаем ☿", destroy:"▶ УНИЧТОЖИТЬ",
+      fire:"ОГОНЬ", wave:"ВОЛНА", over:"ОТБОЙ", downed:"Сбито", reached:"Волна", retry:"↺ Ещё раз",
+      intro:[
+        ["op","Оператор · пост 7","О боже, что это?"],
+        ["op","Оператор · пост 7","Оно огромное… и похоже на —"]],
+      rest:[
+        ["sys","","переключение канала · пост 3"],
+        ["op","Борт · пост 3","— по правому борту! Прямо как гигантский —"],
+        ["sys","","переключение · наблюдатель, парк"],
+        ["op","Наблюдатель","Ну это же просто здоровенный —"],
+        ["sys","","помехи на линии"],
+        ["op","Оператор · пост 5","— длиной почти в две —"],
+        ["cmd","Командир","Отставить описания. Коротко: что это?"],
+        ["op","Оператор · пост 7","Меркурий. Ретроградный."],
+        ["cmd","Командир","…А форма почему такая?"],
+        ["op","Оператор · пост 7","Так исторически сложилось, товарищ командир."],
+        ["cmd","Командир","Повышенная готовность. Ничего важного не подписываем."],
+        ["sys","","СТАТУС: ВСТРЕЧАЕМ"]],
+      glog:["Ещё один на подходе…","Оно приближается —","Опять эта форма.",
+        "Ретроградный Меркурий. Снова.","Держим строй, товарищ командир.","Оно огромное, но мы справимся —"]
+    },
+    uk:{ html:"uk", title:"Retrograde Intercept · Ретроградний Меркурій",
+      center:"ЦЕНТР КОСМІЧНОГО КОНТРОЛЮ · СЕКТОР 4", h1:"Ретроградний Меркурій",
+      window:"вікно захоплення", oper:"оператор · пост 7", comms:"КАНАЛ ЗВʼЯЗКУ · ШИФР",
+      start:"▶ Запустити перехоплення", reset:"Скидання", active:"◉ Перехоплення активне",
+      verdict:"Зустрічаємо", verdictBtn:"Зустрічаємо ☿", destroy:"▶ ЗНИЩИТИ",
+      fire:"ВОГОНЬ", wave:"ХВИЛЯ", over:"ВІДБІЙ", downed:"Збито", reached:"Хвиля", retry:"↺ Ще раз",
+      intro:[
+        ["op","Оператор · пост 7","О боже, що це?"],
+        ["op","Оператор · пост 7","Воно величезне… і схоже на —"]],
+      rest:[
+        ["sys","","перемикання каналу · пост 3"],
+        ["op","Борт · пост 3","— по правому борту! Прямо як гігантський —"],
+        ["sys","","перемикання · спостерігач, парк"],
+        ["op","Спостерігач","Ну це ж просто здоровенний —"],
+        ["sys","","перешкоди на лінії"],
+        ["op","Оператор · пост 5","— завдовжки майже у два —"],
+        ["cmd","Командир","Відставити описи. Коротко: що це?"],
+        ["op","Оператор · пост 7","Меркурій. Ретроградний."],
+        ["cmd","Командир","…А чому такої форми?"],
+        ["op","Оператор · пост 7","Так історично склалося, товаришу командире."],
+        ["cmd","Командир","Підвищена готовність. Нічого важливого не підписуємо."],
+        ["sys","","СТАТУС: ЗУСТРІЧАЄМО"]],
+      glog:["Ще один на підході…","Воно наближається —","Знову ця форма.",
+        "Ретроградний Меркурій. Знову.","Тримаємо стрій, товаришу командире.","Воно величезне, але ми впораємось —"]
+    },
+    en:{ html:"en", title:"Retrograde Intercept · Mercury Retrograde",
+      center:"SPACE CONTROL CENTER · SECTOR 4", h1:"Mercury Retrograde",
+      window:"capture window", oper:"operator · post 7", comms:"COMMS CHANNEL · ENCRYPTED",
+      start:"▶ Start intercept", reset:"Reset", active:"◉ Intercept active",
+      verdict:"Here it comes", verdictBtn:"Here it comes ☿", destroy:"▶ DESTROY",
+      fire:"FIRE", wave:"WAVE", over:"STAND DOWN", downed:"Downed", reached:"Wave", retry:"↺ Retry",
+      intro:[
+        ["op","Operator · post 7","Oh my God, what is that?"],
+        ["op","Operator · post 7","It's enormous… it looks like a giant —"]],
+      rest:[
+        ["sys","","channel switch · post 3"],
+        ["op","Jet · post 3","— off the starboard side! Just like a huge —"],
+        ["sys","","switch · birdwatcher, park"],
+        ["op","Observer","Oh my, that is one massive —"],
+        ["sys","","signal interference"],
+        ["op","Operator · post 5","— nearly the length of two —"],
+        ["cmd","Commander","Enough descriptions. Short version: what is it?"],
+        ["op","Operator · post 7","Mercury. Retrograde."],
+        ["cmd","Commander","…And why is it shaped like that?"],
+        ["op","Operator · post 7","That's just how it's always been, sir."],
+        ["cmd","Commander","Heightened alert. We sign nothing important."],
+        ["sys","","STATUS: INCOMING"]],
+      glog:["Another one inbound…","It's getting closer —","That shape again.",
+        "Mercury retrograde. Again.","Hold the line, commander.","It's huge, but we've got this —"]
+    }
+  };
+  let LANG = "ru", S = STR[LANG];
+
+  /* ================= canvas ================= */
+  const rc=document.getElementById("radar"), rx=rc.getContext("2d");
+  const sc=document.getElementById("spec"), sx=sc.getContext("2d");
+  let RW,RH,SW,SH,DPR;
+  function fit(){
+    DPR=Math.min(devicePixelRatio||1,2);
+    RW=rc.clientWidth; RH=rc.clientHeight; rc.width=RW*DPR; rc.height=RH*DPR; rx.setTransform(DPR,0,0,DPR,0,0);
+    SW=sc.clientWidth; SH=sc.clientHeight; sc.width=SW*DPR; sc.height=SH*DPR; sx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  addEventListener("resize",fit);
+
+  let mode="intro";           // intro | game | over
+  let angle=0, armed=false, blips=[], craft=null;
+  function seedBlips(){ blips=[]; for(let i=0;i<7;i++) blips.push({a:Math.random()*Math.PI*2, r:0.2+Math.random()*0.7}); }
+  seedBlips();
+
+  function backdrop(faint){
+    const cx=RW/2, cy=RH/2, R=Math.min(RW,RH)/2-6;
+    rx.clearRect(0,0,RW,RH);
+    for(let i=1;i<=4;i++){ rx.strokeStyle="rgba(47,240,200,"+((faint?0.03:0.06)+i*0.012)+")"; rx.lineWidth=1;
+      rx.beginPath(); rx.arc(cx,cy,R*i/4,0,Math.PI*2); rx.stroke(); }
+    rx.strokeStyle="rgba(47,240,200,"+(faint?0.05:0.10)+")";
+    rx.beginPath(); rx.moveTo(cx-R,cy); rx.lineTo(cx+R,cy); rx.moveTo(cx,cy-R); rx.lineTo(cx,cy+R); rx.stroke();
+    angle=(angle+(reduced?0.006:0.028))%(Math.PI*2);
+    const sweepA=faint?0.05:0.16;
+    for(let k=0;k<26;k++){ const a=angle-k*0.03;
+      rx.strokeStyle="rgba(47,240,200,"+(sweepA*(1-k/26))+")";
+      rx.beginPath(); rx.moveTo(cx,cy); rx.lineTo(cx+Math.cos(a)*R, cy+Math.sin(a)*R); rx.stroke(); }
+    if(!faint){ rx.strokeStyle="rgba(47,240,200,.85)"; rx.lineWidth=1.5;
+      rx.beginPath(); rx.moveTo(cx,cy); rx.lineTo(cx+Math.cos(angle)*R, cy+Math.sin(angle)*R); rx.stroke(); rx.lineWidth=1; }
+    return {cx,cy,R};
+  }
+
+  /* intro radar (meme) */
+  function drawRadar(){
+    const {cx,cy,R}=backdrop(false);
+    blips.forEach(b=>{ let da=((angle-b.a)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+      const lit=da<0.9?(1-da/0.9):0; const bx=cx+Math.cos(b.a)*R*b.r, by=cy+Math.sin(b.a)*R*b.r;
+      rx.fillStyle="rgba(47,240,200,"+(0.16+lit*0.6)+")"; rx.beginPath(); rx.arc(bx,by,2.2+lit*2,0,Math.PI*2); rx.fill(); });
+    if(armed){
+      if(!craft) newCraft();
+      craft.x+=craft.vx*craft.sp; craft.y+=craft.vy*craft.sp;
+      craft.trail.push({x:craft.x,y:craft.y}); if(craft.trail.length>24) craft.trail.shift();
+      if(Math.hypot(craft.x-cx,craft.y-cy) > R+22) newCraft();
+      rx.lineWidth=2.4;
+      for(let i=1;i<craft.trail.length;i++){ const p=craft.trail[i-1],q=craft.trail[i];
+        rx.strokeStyle="rgba(255,176,32,"+(i/craft.trail.length*0.4)+")"; rx.beginPath(); rx.moveTo(p.x,p.y); rx.lineTo(q.x,q.y); rx.stroke(); }
+      rx.lineWidth=1;
+      const ca=Math.atan2(craft.y-cy,craft.x-cx); let da=((angle-ca)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+      const glow=0.6+(da<1?(1-da)*0.4:0);
+      silhouette(craft.x,craft.y, Math.atan2(craft.vy,craft.vx), glow, 1);
+      rx.font="11px "+getComputedStyle(document.body).fontFamily; rx.fillStyle="rgba(255,176,32,.9)";
+      rx.fillText("☿ RETRO", craft.x+16, craft.y-11);
+    }
+    rx.fillStyle="rgba(47,240,200,.9)"; rx.beginPath(); rx.arc(cx,cy,2.5,0,Math.PI*2); rx.fill();
+  }
+  function newCraft(){ const R=Math.min(RW,RH)/2-6, cx=RW/2, cy=RH/2, a=Math.random()*Math.PI*2;
+    craft={x:cx+Math.cos(a)*R, y:cy+Math.sin(a)*R, vx:-Math.cos(a), vy:-Math.sin(a), sp:(reduced?0.8:1.8), trail:[]}; }
+
+  /* the ☿ silhouette (used by intro craft and by enemies) */
+  function silhouette(px,py,head,glow,scale){
+    rx.save(); rx.translate(px,py); rx.rotate(head); rx.scale(scale,scale);
+    rx.strokeStyle="rgba(255,176,32,"+glow+")"; rx.fillStyle="rgba(255,176,32,"+(glow*0.2)+")";
+    rx.lineWidth=1.9/scale; rx.lineJoin="round"; rx.lineCap="round";
+    const L=18,r=5.5;
+    rx.beginPath(); rx.moveTo(-8,-r); rx.lineTo(L,-r); rx.arc(L,0,r,-Math.PI/2,Math.PI/2); rx.lineTo(-8,r); rx.closePath(); rx.fill(); rx.stroke();
+    rx.beginPath(); rx.arc(-10,-r-1,4.2,0,Math.PI*2); rx.stroke();
+    rx.beginPath(); rx.arc(-10, r+1,4.2,0,Math.PI*2); rx.stroke();
+    rx.restore();
+  }
+
+  /* ================= equalizer strip ================= */
+  const NB=40, bars=[]; for(let i=0;i<NB;i++) bars.push({v:0.2,seed:Math.random()*10}); let ph=0;
+  function drawStrip(){ sx.clearRect(0,0,SW,SH); ph+=reduced?0.01:0.06; const bw=SW/NB, pad=bw*0.22;
+    const hot = (mode!=="intro")||armed;
+    for(let i=0;i<NB;i++){ const b=bars[i];
+      let e=0.2+0.55*Math.abs(Math.sin(ph*0.8+b.seed+i*0.3))+0.3*Math.abs(Math.sin(ph*0.4+i*0.15));
+      if(hot) e+=0.15; e=Math.min(1,e); b.v+=(e-b.v)*0.25;
+      const h=b.v*SH*0.92, xx=i*bw+pad, y=SH-h;
+      const g=sx.createLinearGradient(0,SH,0,y);
+      g.addColorStop(0,"rgba(47,240,200,.15)"); g.addColorStop(1,"rgba(120,255,220,.95)");
+      sx.fillStyle=g; sx.fillRect(xx,y,bw-2*pad,h); } }
+
+  /* ================= GAME: Retrograde Intercept ================= */
+  let player, enemies=[], bullets=[], keys={left:false,right:false,fire:false};
+  let wave=0, lives=3, score=0, invuln=0, lastShot=0, waveBanner=0, betweenWaves=0;
+
+  function enterGame(){
+    timers.forEach(clearTimeout); timers=[]; armed=false; craft=null;
+    mode="game"; controls.hidden=true; pad.hidden=false; hint.hidden=false;
+    verdict.classList.remove("on"); log.innerHTML="";
+    wave=0; lives=3; score=0; enemies=[]; bullets=[]; invuln=0; lastShot=0; betweenWaves=0;
+    player={x:RW/2, y:RH-24, w:26, h:18, sp:4.4};
+    keys={left:false,right:false,fire:false};
+    startWave(1);
+  }
+  function startWave(w){
+    wave=w; waveBanner=performance.now(); betweenWaves=0;
+    const R=Math.min(RW,RH)/2-6, cx=RW/2, count=3+w, vy=0.55+w*0.12;
+    for(let i=0;i<count;i++){
+      enemies.push({ x:cx+(Math.random()-0.5)*R*1.4, y:-20-i*52,
+        vx:(Math.random()-0.5)*0.6, vy:vy*(0.9+Math.random()*0.2), r:12, wob:Math.random()*6 });
+    }
+    glog(S.wave+" "+w);
+  }
+  function shoot(t){ if(t-lastShot<240) return; lastShot=t;
+    bullets.push({x:player.x, y:player.y-player.h, vy:-6.4}); }
+
+  function updateGame(t){
+    if(keys.left) player.x-=player.sp;
+    if(keys.right) player.x+=player.sp;
+    player.x=Math.max(18, Math.min(RW-18, player.x));
+    if(keys.fire) shoot(t);
+
+    for(const b of bullets) b.y+=b.vy;
+    bullets=bullets.filter(b=>b.y>-12);
+
+    const cx=RW/2;
+    for(const e of enemies){ e.x+=e.vx; e.y+=e.vy; e.wob+=0.05;
+      e.x+=Math.sin(e.wob)*0.4;
+      if(e.x<20||e.x>RW-20) e.vx*=-1;
+    }
+    // collisions bullet -> enemy
+    for(let i=enemies.length-1;i>=0;i--){ const e=enemies[i];
+      for(let j=bullets.length-1;j>=0;j--){ const b=bullets[j];
+        if(Math.hypot(e.x-b.x, e.y-b.y) < e.r+4){ enemies.splice(i,1); bullets.splice(j,1);
+          score++; if(Math.random()<0.22) glog(S.glog[Math.floor(Math.random()*S.glog.length)]); break; }
+      }
+    }
+    // enemy reaches player line
+    for(let i=enemies.length-1;i>=0;i--){ const e=enemies[i];
+      if(e.y > player.y-6){ enemies.splice(i,1);
+        if(t>invuln){ lives--; invuln=t+1000; if(lives<=0){ gameOver(); return; } } }
+    }
+    // wave cleared
+    if(enemies.length===0){ if(!betweenWaves) betweenWaves=t; else if(t-betweenWaves>1600) startWave(wave+1); }
+  }
+
+  function drawGame(t){
+    backdrop(true);
+    if(mode==="game") updateGame(t);
+    // bullets
+    rx.strokeStyle="rgba(120,255,220,.95)"; rx.lineWidth=2;
+    for(const b of bullets){ rx.beginPath(); rx.moveTo(b.x,b.y); rx.lineTo(b.x,b.y+9); rx.stroke(); }
+    rx.lineWidth=1;
+    // enemies (descending ☿)
+    for(const e of enemies) silhouette(e.x,e.y, Math.PI/2, 0.9, 0.72);
+    // player ship
+    if(player && !(mode==="game" && invuln>t && Math.floor(t/90)%2)){
+      rx.save(); rx.fillStyle="rgba(47,240,200,.95)"; rx.strokeStyle="rgba(180,255,240,.9)"; rx.lineWidth=1.5;
+      rx.beginPath(); rx.moveTo(player.x, player.y-player.h); rx.lineTo(player.x-player.w/2, player.y);
+      rx.lineTo(player.x+player.w/2, player.y); rx.closePath(); rx.fill(); rx.stroke();
+      rx.fillStyle="rgba(120,255,220,.8)"; rx.fillRect(player.x-2, player.y, 4, 5); rx.restore();
+    }
+    // HUD
+    rx.font="12px "+getComputedStyle(document.body).fontFamily; rx.textBaseline="top";
+    rx.fillStyle="rgba(255,90,110,.95)"; rx.fillText("♥".repeat(Math.max(0,lives)), 12, 10);
+    rx.fillStyle="rgba(207,233,227,.9)"; rx.textAlign="right";
+    rx.fillText(S.downed.toUpperCase()+" "+score, RW-12, 10);
+    rx.fillText(S.wave.toUpperCase()+" "+wave, RW-12, 26);
+    rx.textAlign="left"; rx.textBaseline="alphabetic";
+    // wave banner
+    if(waveBanner && t-waveBanner<1500){ const a=1-(t-waveBanner)/1500;
+      rx.save(); rx.globalAlpha=a; rx.fillStyle="rgba(255,176,32,1)"; rx.textAlign="center";
+      rx.font="700 italic 22px "+getComputedStyle(document.body).fontFamily;
+      rx.fillText(S.wave.toUpperCase()+" "+wave, RW/2, RH/2); rx.restore(); rx.textAlign="left"; }
+    // game over
+    if(mode==="over"){
+      rx.fillStyle="rgba(0,0,0,.62)"; rx.fillRect(0,0,RW,RH);
+      rx.textAlign="center";
+      rx.fillStyle="rgba(255,90,110,1)"; rx.font="800 26px "+getComputedStyle(document.body).fontFamily;
+      rx.fillText(S.over, RW/2, RH/2-14);
+      rx.fillStyle="rgba(207,233,227,.95)"; rx.font="14px "+getComputedStyle(document.body).fontFamily;
+      rx.fillText(S.downed+": "+score+"   ·   "+S.reached+": "+wave, RW/2, RH/2+14);
+      rx.textAlign="left";
+    }
+  }
+
+  function gameOver(){ mode="over"; pad.hidden=true; hint.hidden=true; controls.hidden=false;
+    reset.hidden=true; go.className="ctl primary pulse"; go.disabled=false; go.dataset.mode="retry"; go.textContent=S.retry; }
+
+  /* ================= loop ================= */
+  function loop(t){ if(mode==="intro") drawRadar(); else drawGame(t); drawStrip(); requestAnimationFrame(loop); }
+
+  /* ================= comms (meme) ================= */
+  const log=document.getElementById("log"), clock=document.getElementById("clock");
+  const verdict=document.getElementById("verdict");
+  const go=document.getElementById("go"), reset=document.getElementById("reset");
+  const controls=document.getElementById("controls"), pad=document.getElementById("pad"), hint=document.getElementById("hint");
+  let timers=[], phaseDone=false, ri=0;
+
+  function typeInto(node,text,done){ if(reduced){node.textContent=text; done&&done(); return;}
+    node.classList.add("cursor"); let i=0;
+    (function tick(){ node.textContent=text.slice(0,i++);
+      if(i<=text.length) timers.push(setTimeout(tick,20+Math.random()*24));
+      else { node.classList.remove("cursor"); done&&done(); } })(); }
+  function render(role,who,text,cb,keepCursor){ const div=document.createElement("div"); div.className="msg "+role;
+    if(role==="sys"){ div.textContent="»  "+text+"  «"; log.appendChild(div); log.scrollTop=log.scrollHeight; cb&&timers.push(setTimeout(cb,650)); return; }
+    const w=document.createElement("span"); w.className="who"; w.textContent=who;
+    const b=document.createElement("span"); div.appendChild(w); div.appendChild(b); log.appendChild(div); log.scrollTop=log.scrollHeight;
+    typeInto(b,text,()=>{ if(keepCursor) b.classList.add("cursor"); log.scrollTop=log.scrollHeight; cb&&timers.push(setTimeout(cb,470)); }); }
+  function glog(text){ const div=document.createElement("div"); div.className="msg op"; div.textContent=text;
+    log.appendChild(div); while(log.children.length>6) log.removeChild(log.firstChild); log.scrollTop=log.scrollHeight; }
+
+  function playIntro(){ render(S.intro[0][0],S.intro[0][1],S.intro[0][2],()=>{
+      render(S.intro[1][0],S.intro[1][1],S.intro[1][2],()=>{ phaseDone=true; go.disabled=false; go.classList.add("pulse"); }, true); }); }
+  function playRest(){ if(ri>=S.rest.length){ verdict.classList.add("on"); go.textContent=S.verdictBtn;
+      reset.disabled=false; reset.classList.add("pulse"); return; }
+    const [role,who,text]=S.rest[ri++]; render(role,who,text,playRest); }
+  function startIntercept(){ if(!phaseDone) return; armed=true; newCraft();
+    go.disabled=true; go.classList.remove("pulse"); reset.disabled=false; go.textContent=S.active; clock.textContent="07:54";
+    const c=log.querySelector(".cursor"); c&&c.classList.remove("cursor"); timers.push(setTimeout(playRest,400)); }
+
+  function resetToIntro(){ timers.forEach(clearTimeout); timers=[];
+    mode="intro"; armed=false; craft=null; enemies=[]; bullets=[]; player=null;
+    pad.hidden=true; hint.hidden=true; controls.hidden=false; reset.hidden=false;
+    go.className="ctl primary"; go.dataset.mode=""; go.disabled=true; go.classList.remove("pulse"); go.textContent=S.start;
+    reset.className="ctl danger"; reset.dataset.mode="destroy"; reset.disabled=true; reset.textContent=S.destroy;
+    verdict.classList.remove("on"); verdict.textContent=S.verdict;
+    log.innerHTML=""; clock.textContent="07:53"; seedBlips(); phaseDone=false; ri=0;
+    timers.push(setTimeout(playIntro,500)); }
+
+  /* buttons */
+  function onGo(){ if(go.dataset.mode==="retry") enterGame(); else startIntercept(); }
+  function onReset(){ enterGame(); }
+  go.addEventListener("click",onGo);
+  reset.addEventListener("click",onReset);
+
+  /* ================= input ================= */
+  addEventListener("keydown",e=>{ if(mode!=="game") return;
+    if(e.key==="ArrowLeft"){keys.left=true;e.preventDefault();}
+    if(e.key==="ArrowRight"){keys.right=true;e.preventDefault();}
+    if(e.key===" "){keys.fire=true;e.preventDefault();} });
+  addEventListener("keyup",e=>{
+    if(e.key==="ArrowLeft")keys.left=false;
+    if(e.key==="ArrowRight")keys.right=false;
+    if(e.key===" ")keys.fire=false; });
+  function hold(el,on){ const set=v=>e=>{e.preventDefault(); keys[on]=v;};
+    el.addEventListener("pointerdown",set(true)); el.addEventListener("pointerup",set(false));
+    el.addEventListener("pointerleave",set(false)); el.addEventListener("pointercancel",set(false)); }
+  hold(document.getElementById("left"),"left");
+  hold(document.getElementById("right"),"right");
+  hold(document.getElementById("fire"),"fire");
+
+  /* ================= language ================= */
+  function applyStatic(){ document.documentElement.lang=S.html; document.title=S.title;
+    document.getElementById("t-center").textContent=S.center;
+    document.getElementById("t-h1").textContent=S.h1;
+    document.getElementById("t-window").textContent=S.window;
+    document.getElementById("t-oper").textContent=S.oper;
+    document.getElementById("t-comms").textContent=S.comms;
+    document.getElementById("fire").textContent=S.fire;
+    // default intro labels (applyStatic is only called at boot and on language change — both land in intro)
+    go.textContent=S.start; verdict.textContent=S.verdict;
+    reset.textContent=S.destroy; reset.className="ctl danger"; reset.dataset.mode="destroy"; reset.disabled=true;
+    document.querySelectorAll("#lang button").forEach(b=>b.classList.toggle("on", b.dataset.l===LANG)); }
+  document.getElementById("lang").addEventListener("click",e=>{ const l=e.target.dataset.l; if(!l||l===LANG) return;
+    LANG=l; S=STR[l]; applyStatic(); resetToIntro(); });
+
+  /* ================= boot ================= */
+  applyStatic(); fit(); requestAnimationFrame(loop);
+  resetToIntro();
+})();
+</script>
+</body>
+</html>
